@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>رحلة إلى قصر السلطان سليمان القانوني</title>
+    <!-- تحميل Tailwind CSS للتنسيق السريع والمتجاوب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تحميل خط Cairo العربي الواضح والجميل -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <!-- تحميل مكتبة Three.js للرسومات ثلاثية الأبعاد -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- تحميل مكتبة Tone.js للمؤثرات الصوتية -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b132b;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* حاوية كادر اللعبة متجاوبة مع الموبايل والكمبيوتر والسبورة الذكية */
+        #game-frame {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background: #87CEEB;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) and (orientation: landscape) {
+            #game-frame {
+                width: 100vw;
+                height: 56.25vw; /* نسبة 16:9 على الشاشات الكبيرة */
+                max-height: 100vh;
+                max-width: 177.78vh;
+                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 3px #d4af37;
+                border-radius: 16px;
+            }
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* طبقات واجهة المستخدم */
+        .ui-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* تصميم البطاقات العثمانية الفاخرة */
+        .royal-panel {
+            background: linear-gradient(145deg, rgba(16, 33, 66, 0.95), rgba(10, 22, 46, 0.97));
+            border: 2.5px solid #e5b842;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), inset 0 0 18px rgba(229, 184, 66, 0.25);
+            border-radius: 20px;
+            color: #fff;
+            backdrop-filter: blur(8px);
+        }
+
+        .royal-header-banner {
+            background: linear-gradient(90deg, rgba(13, 30, 62, 0.92), rgba(24, 52, 102, 0.95), rgba(13, 30, 62, 0.92));
+            border: 2px solid #e5b842;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+            border-radius: 16px;
+        }
+
+        /* أزرار الاختيارات */
+        .choice-btn {
+            background: linear-gradient(135deg, #1b3b73, #132a54);
+            border: 2px solid #d4af37;
+            color: #ffffff;
+            border-radius: 14px;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            text-align: right;
+            cursor: pointer;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+            background: linear-gradient(135deg, #254e96, #1b3a73);
+            border-color: #fde047;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
+        }
+
+        .choice-btn:active {
+            transform: scale(0.98);
+        }
+
+        .choice-btn.correct {
+            background: linear-gradient(135deg, #15803d, #166534) !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 25px rgba(74, 222, 128, 0.6) !important;
+        }
+
+        .choice-btn.wrong {
+            background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
+            border-color: #f87171 !important;
+            animation: shake 0.45s ease-in-out;
+        }
+
+        /* أزرار ذهبية رئيسية */
+        .gold-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: 2px solid #fef08a;
+            color: #1e1b08;
+            font-weight: 900;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .gold-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.65);
+        }
+
+        .gold-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* مؤشر تقدم الأبواب */
+        .progress-gem {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #d4af37;
+            background: rgba(15, 23, 42, 0.8);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .progress-gem.completed {
+            background: radial-gradient(circle, #4ade80, #16a34a);
+            border-color: #bbf7d0;
+            box-shadow: 0 0 12px #4ade80;
+            transform: scale(1.1);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-frame">
+    <!-- مشهد Three.js ثلاثي الأبعاد -->
+    <div id="canvas-container"></div>
+
+    <!-- شاشة البداية الترحيبية الأولى وبها النص التاريخي الكامل -->
+    <div id="ui-start-screen" class="ui-layer items-center justify-center bg-slate-950/70 backdrop-blur-[4px] z-30 p-3 sm:p-5">
+        <div class="royal-panel p-5 sm:p-8 max-w-2xl w-full text-center interactive flex flex-col items-center gap-3 sm:gap-4 max-h-[92vh] overflow-y-auto">
+            <div class="text-3xl sm:text-5xl drop-shadow-lg">🏰👑✨</div>
+            <h1 class="text-lg sm:text-2xl md:text-3xl font-black text-amber-300 leading-snug">
+                🏰 رحلة إلى قصر السلطان سليمان القانوني
+            </h1>
+            <div class="bg-slate-900/75 border border-amber-400/50 rounded-2xl p-4 sm:p-5 text-right w-full">
+                <p class="text-sm sm:text-lg md:text-xl text-white font-bold leading-relaxed">
+                    في عهد السلطان سليمان القانوني (1520–1566م)، أصبحت الدولة العثمانية أقوى دولة في العالم، وسيطرت على البحر المتوسط، وبلغت أقصى اتساع لها. كما هزمت جيوشها ملك المجر ووصلت إلى أسوار فيينا عاصمة النمسا. واهتم السلطان بتنظيم شؤون الدولة ووضع القوانين المتفقة مع الشريعة الإسلامية، ولذلك لُقّب بالقانوني.
+                </p>
+            </div>
+            <p class="text-sm sm:text-lg text-amber-300 font-extrabold">
+                افتحي أبواب القصر، وأجيبي عن الأسئلة لاكتشاف سر العصر الذهبي!
+            </p>
+            <button id="btn-start-game" class="gold-btn px-7 py-3 sm:px-9 sm:py-3.5 text-base sm:text-xl flex items-center gap-3 mt-1">
+                <span>الانتقال إلى القصر</span>
+                <span>🏰</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- واجهة الشاشة الرئيسية (القصر والأبواب الخمسة صافية وواضحة بالكامل) -->
+    <div id="ui-palace" class="ui-layer hidden">
+        <!-- الشريط العلوي المدمج -->
+        <div class="flex flex-col items-center w-full">
+            <div class="royal-header-banner px-3 py-2 sm:px-5 sm:py-2.5 w-full max-w-4xl flex flex-row items-center justify-between gap-2 interactive">
+                <div class="text-right">
+                    <h1 class="text-xs sm:text-lg md:text-xl font-black text-amber-300 drop-shadow-md">
+                        رحلة إلى قصر السلطان سليمان القانوني
+                    </h1>
+                    <p class="text-[11px] sm:text-xs md:text-sm text-sky-100 font-bold">
+                        افتحي الأبواب، واكتشفي الإنجازات، وأجيبي عن الأسئلة!
+                    </p>
+                </div>
+                <!-- مؤشر التقدم -->
+                <div class="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl border border-amber-400/50 shrink-0">
+                    <span class="text-[10px] sm:text-xs text-amber-200 font-bold">
+                        الأبواب: <span id="progress-count" class="text-emerald-400 font-black">0</span> / 5
+                    </span>
+                    <div class="flex items-center gap-1" id="progress-gems">
+                        <div class="progress-gem" data-gem="0"></div>
+                        <div class="progress-gem" data-gem="1"></div>
+                        <div class="progress-gem" data-gem="2"></div>
+                        <div class="progress-gem" data-gem="3"></div>
+                        <div class="progress-gem" data-gem="4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تلميح تفاعلي سفلي -->
+        <div class="flex justify-center mb-1">
+            <div id="palace-hint" class="bg-slate-900/85 text-amber-200 border border-amber-400/60 px-4 py-1.5 rounded-full text-xs sm:text-base font-bold backdrop-blur-sm shadow-lg text-center">
+                👆 اضغطي على أي باب من أبواب القصر الخمسة لاستكشافه
+            </div>
+        </div>
+    </div>
+
+    <!-- واجهة الغرفة الداخلية (عرض السؤال مباشرة) -->
+    <div id="ui-room" class="ui-layer hidden justify-end items-center">
+        <div class="w-full max-w-3xl mb-1 sm:mb-2 interactive max-h-[82vh] overflow-y-auto">
+            <!-- عرض السؤال والاختيارات مباشرة -->
+            <div id="room-question-card" class="royal-panel p-4 sm:p-5 flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b border-amber-400/30 pb-2">
+                    <span class="text-amber-300 font-bold text-xs sm:text-base">❓ اختاري الإجابة الصحيحة:</span>
+                </div>
+
+                <h2 id="room-question-text" class="text-base sm:text-xl font-black text-white leading-snug">
+                    <!-- نص السؤال -->
+                </h2>
+
+                <div id="room-choices" class="grid grid-cols-1 gap-2">
+                    <!-- الاختيارات الثلاثة -->
+                </div>
+
+                <!-- رسالة التغذية الراجعة -->
+                <div id="room-feedback" class="hidden text-center py-2 px-4 rounded-xl font-black text-base sm:text-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشاشة الانتقالية قبل الأسئلة الختامية -->
+    <div id="ui-transition" class="ui-layer hidden items-center justify-center bg-slate-950/65 backdrop-blur-sm">
+        <div class="royal-panel p-6 sm:p-8 max-w-2xl w-full text-center interactive flex flex-col items-center gap-4 animate-float">
+            <div class="text-4xl sm:text-6xl">🌟👑🌟</div>
+            <h2 class="text-lg sm:text-2xl md:text-3xl font-black text-amber-300 leading-relaxed">
+                «رائع يا بطلة! اكتشفتِ جميع إنجازات السلطان سليمان القانوني. هيا نفكر ونستنتج!»
+            </h2>
+            <p class="text-sky-100 text-sm sm:text-lg font-bold">
+                أنتِ الآن مستعدة لتحدي الأسئلة الختامية الخمسة!
+            </p>
+            <button id="btn-start-quiz" class="gold-btn px-8 py-3 text-base sm:text-xl mt-1">
+                ابدئي الأسئلة الختامية 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- شاشة النهاية الاحتفالية وعرض الأدلة الخمسة على ازدهار العصر الذهبي -->
+    <div id="ui-victory" class="ui-layer hidden items-center justify-center bg-slate-950/55 backdrop-blur-[2px] p-3 sm:p-5">
+        <div class="royal-panel p-4 sm:p-6 max-w-3xl w-full text-center interactive flex flex-col items-center gap-3 max-h-[92vh] overflow-y-auto">
+            <div class="text-2xl sm:text-4xl">👑🎉🏰✨</div>
+            <h1 class="text-lg sm:text-2xl md:text-3xl font-black text-amber-300 drop-shadow">
+                «أحسنتِ يا بطلة التاريخ!»
+            </h1>
+            <p class="text-xs sm:text-base md:text-lg font-extrabold text-sky-100 leading-relaxed">
+                يُعد عصر السلطان سليمان القانوني العصر الذهبي للدولة العثمانية للأسباب التالية:
+            </p>
+
+            <!-- النقاط الخمس الدالة على ازدهار الحكم -->
+            <div class="w-full text-right bg-slate-900/80 border border-amber-400/50 rounded-2xl p-3 sm:p-4 flex flex-col gap-2">
+                <div class="flex items-start gap-2.5 text-xs sm:text-base md:text-lg font-bold text-white">
+                    <span class="text-amber-300 font-black">1️⃣</span>
+                    <span>أصبحت الدولة العثمانية أقوى دولة في العالم في عهده.</span>
+                </div>
+                <div class="flex items-start gap-2.5 text-xs sm:text-base md:text-lg font-bold text-white">
+                    <span class="text-amber-300 font-black">2️⃣</span>
+                    <span>سيطرت الدولة العثمانية على البحر المتوسط.</span>
+                </div>
+                <div class="flex items-start gap-2.5 text-xs sm:text-base md:text-lg font-bold text-white">
+                    <span class="text-amber-300 font-black">3️⃣</span>
+                    <span>بلغت الدولة العثمانية أقصى اتساع لها.</span>
+                </div>
+                <div class="flex items-start gap-2.5 text-xs sm:text-base md:text-lg font-bold text-white">
+                    <span class="text-amber-300 font-black">4️⃣</span>
+                    <span>حققت انتصارات عسكرية كبيرة، فهزمت ملك المجر ووصلت جيوشها إلى أسوار فيينا عاصمة النمسا.</span>
+                </div>
+                <div class="flex items-start gap-2.5 text-xs sm:text-base md:text-lg font-bold text-white">
+                    <span class="text-amber-300 font-black">5️⃣</span>
+                    <span>نظّم السلطان شؤون الدولة ووضع القوانين المتفقة مع الشريعة الإسلامية، ولذلك لُقّب بالقانوني.</span>
+                </div>
+            </div>
+
+            <button id="btn-restart" class="gold-btn px-7 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-xl mt-1 flex items-center gap-2">
+                <span>🔄</span>
+                <span>إعادة اللعبة</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * ============================================================================
+ * 1. البيانات التعليمية للغرف الخمس والأسئلة الختامية
+ * ============================================================================
+ */
+const ROOMS_DATA = [
+    {
+        id: 0,
+        theme: 'throne',
+        fact: '«أصبحت الدولة العثمانية أقوى دولة في العالم في عهد السلطان سليمان القانوني».',
+        question: 'كيف كانت مكانة الدولة العثمانية في العالم خلال عهد السلطان سليمان القانوني؟',
+        choices: [
+            { text: 'أ- أضعف دولة في العالم.', correct: false },
+            { text: 'ب- أقوى دولة في العالم.', correct: true },
+            { text: 'ج- دولة صغيرة محدودة النفوذ.', correct: false }
+        ]
+    },
+    {
+        id: 1,
+        theme: 'navy',
+        fact: '«سيطرت الدولة العثمانية على البحر المتوسط في عهد السلطان سليمان القانوني».',
+        question: 'ما البحر الذي سيطرت عليه الدولة العثمانية في عهده؟',
+        choices: [
+            { text: 'أ- البحر الأحمر.', correct: false },
+            { text: 'ب- البحر المتوسط.', correct: true },
+            { text: 'ج- البحر الأسود.', correct: false }
+        ]
+    },
+    {
+        id: 2,
+        theme: 'map',
+        fact: '«بلغت الدولة العثمانية أقصى اتساع لها في عهد السلطان سليمان القانوني».',
+        question: 'إلى أي مدى وصل اتساع الدولة العثمانية في عهد السلطان سليمان القانوني؟',
+        choices: [
+            { text: 'أ- بلغت أقصى اتساع لها.', correct: true },
+            { text: 'ب- تقلصت مساحتها.', correct: false },
+            { text: 'ج- ظلت مساحتها كما هي.', correct: false }
+        ]
+    },
+    {
+        id: 3,
+        theme: 'military',
+        fact: '«هزم السلطان سليمان القانوني ملك المجر، وبلغت جيوشه أسوار فيينا عاصمة النمسا».',
+        question: 'إلى أين وصلت جيوش السلطان سليمان القانوني بعد انتصاراتها؟',
+        choices: [
+            { text: 'أ- أسوار فيينا عاصمة النمسا.', correct: true },
+            { text: 'ب- أسوار القاهرة.', correct: false },
+            { text: 'ج- أسوار مكة المكرمة.', correct: false }
+        ]
+    },
+    {
+        id: 4,
+        theme: 'law',
+        fact: '«نظّم السلطان سليمان القانوني شؤون الحياة في دولته، ووضع القوانين وحرص على أن تتفق مع الشريعة الإسلامية، وظلت هذه القوانين تطبق حتى القرن التاسع عشر الميلادي، ولذلك لُقّب بالقانوني».',
+        question: 'لماذا لُقّب السلطان سليمان باسم القانوني؟',
+        choices: [
+            { text: 'أ- لاهتمامه بالتجارة.', correct: false },
+            { text: 'ب- لاهتمامه بوضع القوانين وتنظيم شؤون الدولة.', correct: true },
+            { text: 'ج- لاهتمامه ببناء السفن.', correct: false }
+        ]
+    }
+];
+
+/**
+ * ============================================================================
+ * 2. نظام المؤثرات الصوتية التفاعلية باستخدام Tone.js
+ * ============================================================================
+ */
+class SoundEffects {
+    constructor() {
+        this.initialized = false;
+        this.synth = null;
+    }
+
+    async init() {
+        if (this.initialized) return;
+        try {
+            await Tone.start();
+            this.synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'triangle' },
+                envelope: { attack: 0.02, decay: 0.2, sustain: 0.2, release: 0.6 }
+            }).toDestination();
+            this.synth.volume.value = -8;
+            this.initialized = true;
+        } catch (e) {
+            console.warn('Audio init skipped:', e);
+        }
+    }
+
+    async playDoorOpen() {
+        await this.init();
+        if (!this.synth) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease(['C4', 'E4', 'G4'], '8n', now);
+        this.synth.triggerAttackRelease(['C5'], '4n', now + 0.15);
+    }
+
+    async playCorrect() {
+        await this.init();
+        if (!this.synth) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease('C5', '16n', now);
+        this.synth.triggerAttackRelease('E5', '16n', now + 0.1);
+        this.synth.triggerAttackRelease('G5', '16n', now + 0.2);
+        this.synth.triggerAttackRelease(['C6', 'E6'], '4n', now + 0.3);
+    }
+
+    async playWrong() {
+        await this.init();
+        if (!this.synth) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease('E3', '8n', now);
+        this.synth.triggerAttackRelease('C3', '4n', now + 0.15);
+    }
+
+    async playFanfare() {
+        await this.init();
+        if (!this.synth) return;
+        const now = Tone.now();
+        const notes = ['C4', 'E4', 'G4', 'C5', 'G4', 'C5'];
+        notes.forEach((n, idx) => {
+            this.synth.triggerAttackRelease(n, idx === notes.length - 1 ? '2n' : '8n', now + idx * 0.14);
+        });
+    }
+}
+
+const sfx = new SoundEffects();
+
+/**
+ * ============================================================================
+ * 3. محرك اللعبة ثلاثي الأبعاد وبناء القصر والغرف (Three.js)
+ * ============================================================================
+ */
+class SuleimanPalaceGame {
+    constructor() {
+        this.state = 'START'; // START | PALACE | OPENING_DOOR | ROOM | VICTORY
+        this.completedRooms = [false, false, false, false, false];
+        this.currentRoomId = null;
+        this.isLocked = false;
+
+        // كائنات المشهد ثلاثي الأبعاد
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.raycaster = new THREE.Raycaster();
+        this.pointer = new THREE.Vector2();
+
+        this.palaceGroup = new THREE.Group();
+        this.roomGroup = new THREE.Group();
+        this.victoryGroup = new THREE.Group();
+
+        this.doors = []; // مصفوفة الأبواب الخمسة ومكوناتها
+        this.hoveredDoor = null;
+        this.animatingDoor = null;
+        this.animatedObjects = []; // عناصر تتحرك باستمرار في الغرف
+
+        this.clock = new THREE.Clock();
+
+        this.initThree();
+        this.buildPalaceScene();
+        this.bindEvents();
+        this.animate();
+    }
+
+    /**
+     * تهيئة المشهد والكاميرا والإضاءة
+     */
+    initThree() {
+        const container = document.getElementById('canvas-container');
+        const frame = document.getElementById('game-frame');
+        const width = frame.clientWidth || window.innerWidth;
+        const height = frame.clientHeight || window.innerHeight;
+
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x7ec8e3);
+        this.scene.fog = new THREE.FogExp2(0x9bd7ed, 0.008);
+
+        this.camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 200);
+        this.camera.position.set(0, 5.2, 23.5);
+        this.camera.lookAt(0, 4.4, -1.5);
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        this.renderer.setSize(width, height, false);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+
+        container.appendChild(this.renderer.domElement);
+
+        // إضاءة دافئة مشرقة تناسب الأنميشن الكرتوني الفاخر
+        const hemiLight = new THREE.HemisphereLight(0xfff8e7, 0x3b6e52, 0.85);
+        hemiLight.position.set(0, 30, 0);
+        this.scene.add(hemiLight);
+
+        const sunLight = new THREE.DirectionalLight(0xfff1d0, 1.15);
+        sunLight.position.set(16, 28, 22);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 2;
+        sunLight.shadow.camera.far = 80;
+        const d = 22;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        this.scene.add(sunLight);
+
+        this.scene.add(this.palaceGroup);
+        this.scene.add(this.roomGroup);
+        this.scene.add(this.victoryGroup);
+        this.roomGroup.visible = false;
+        this.victoryGroup.visible = false;
+    }
+
+    /**
+     * بناء القصر العثماني الفاخر والأبواب الخمسة في صف واحد واضح دون أي نصوص
+     */
+    buildPalaceScene() {
+        // المواد الأساسية للقصر
+        const marbleMat = new THREE.MeshStandardMaterial({ color: 0xfdf6e3, roughness: 0.35, metalness: 0.05 });
+        const creamStoneMat = new THREE.MeshStandardMaterial({ color: 0xf3e5c8, roughness: 0.45 });
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.22, metalness: 0.85 });
+        const royalBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.3, metalness: 0.2 });
+        const turquoiseMat = new THREE.MeshStandardMaterial({ color: 0x0d9488, roughness: 0.3 });
+        const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.8 });
+        const pathMat = new THREE.MeshStandardMaterial({ color: 0xe7d8b1, roughness: 0.6 });
+
+        // أرضية الحديقة والساحة الرخامية
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), grassMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        this.palaceGroup.add(ground);
+
+        // الساحة الأمامية المرصوفة بالرخام أمام الأبواب الخمسة
+        const courtyard = new THREE.Mesh(new THREE.BoxGeometry(30, 0.3, 12), pathMat);
+        courtyard.position.set(0, 0.15, 2.5);
+        courtyard.receiveShadow = true;
+        this.palaceGroup.add(courtyard);
+
+        // درجات رخامية عريضة تقود إلى القصر
+        const step1 = new THREE.Mesh(new THREE.BoxGeometry(27, 0.35, 6.5), marbleMat);
+        step1.position.set(0, 0.35, -1.2);
+        step1.receiveShadow = true;
+        this.palaceGroup.add(step1);
+
+        const step2 = new THREE.Mesh(new THREE.BoxGeometry(26, 0.35, 5.5), marbleMat);
+        step2.position.set(0, 0.7, -1.6);
+        step2.receiveShadow = true;
+        this.palaceGroup.add(step2);
+
+        // الواجهة الرئيسية للقصر العثماني (عريضة لتتسع للأبواب الخمسة بوضوح تام)
+        const mainFacade = new THREE.Mesh(new THREE.BoxGeometry(25, 8.2, 4.5), creamStoneMat);
+        mainFacade.position.set(0, 4.9, -3.5);
+        mainFacade.castShadow = true;
+        mainFacade.receiveShadow = true;
+        this.palaceGroup.add(mainFacade);
+
+        // إفريز زخرفي علوي ذهبي وأزرق
+        const cornice = new THREE.Mesh(new THREE.BoxGeometry(25.8, 0.65, 5.0), goldMat);
+        cornice.position.set(0, 9.1, -3.5);
+        this.palaceGroup.add(cornice);
+
+        const tileBand = new THREE.Mesh(new THREE.BoxGeometry(25.3, 0.7, 4.7), royalBlueMat);
+        tileBand.position.set(0, 8.45, -3.5);
+        this.palaceGroup.add(tileBand);
+
+        // القبة الذهبية المركزية الكبرى
+        const drumCenter = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 1.5, 32), marbleMat);
+        drumCenter.position.set(0, 10.1, -3.5);
+        this.palaceGroup.add(drumCenter);
+
+        const domeCenter = new THREE.Mesh(
+            new THREE.SphereGeometry(3.5, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2),
+            goldMat
+        );
+        domeCenter.position.set(0, 10.8, -3.5);
+        domeCenter.scale.set(1, 0.95, 1);
+        this.palaceGroup.add(domeCenter);
+
+        // هلال ذهبي فوق القبة الرئيسية
+        this.addCrescentFinial(this.palaceGroup, 0, 14.3, -3.5, 1.0, goldMat);
+
+        // قباب جانبية متناسقة
+        [-7.5, 7.5].forEach((xPos) => {
+            const sideDrum = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.2, 1.0, 24), marbleMat);
+            sideDrum.position.set(xPos, 9.8, -3.5);
+            this.palaceGroup.add(sideDrum);
+
+            const sideDome = new THREE.Mesh(
+                new THREE.SphereGeometry(2.15, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2),
+                turquoiseMat
+            );
+            sideDome.position.set(xPos, 10.25, -3.5);
+            this.palaceGroup.add(sideDome);
+
+            this.addCrescentFinial(this.palaceGroup, xPos, 12.5, -3.5, 0.65, goldMat);
+        });
+
+        // مئذنتان / برجان رشيقان على طرفي القصر لإكمال الطابع العثماني الفاخر
+        [-13.5, 13.5].forEach((xPos) => {
+            const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 12.5, 20), marbleMat);
+            tower.position.set(xPos, 6.25, -3.5);
+            tower.castShadow = true;
+            this.palaceGroup.add(tower);
+
+            const balcony = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.95, 0.4, 20), goldMat);
+            balcony.position.set(xPos, 10.2, -3.5);
+            this.palaceGroup.add(balcony);
+
+            const spire = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.6, 20), goldMat);
+            spire.position.set(xPos, 13.8, -3.5);
+            this.palaceGroup.add(spire);
+        });
+
+        // ترتيب الأبواب الخمسة في صف واحد متناسق بمسافات واضحة ومريحة للضغط
+        const doorSpacing = 4.6;
+        const startX = -doorSpacing * 2; // -9.2, -4.6, 0, +4.6, +9.2
+
+        for (let i = 0; i < 5; i++) {
+            const x = startX + i * doorSpacing;
+            this.createPalaceDoor(i, x, 0.88, -1.15, marbleMat, goldMat);
+        }
+
+        // أشجار سرو وشجيرات زينة كرتونية على جانبي الحديقة فقط (بعيداً عن الأبواب)
+        [-13.2, -11.8, 11.8, 13.2].forEach((xPos, idx) => {
+            this.createStylizedTree(xPos, idx % 2 === 0 ? 2.2 : 4.2);
+        });
+
+        // سحب كرتونية ناعمة في السماء الهادئة
+        this.createClouds();
+
+        // ضبط الكاميرا لإظهار القصر والأبواب الخمسة كاملة دون قص أي جزء أو تغطيتها باللوحة العلوية
+        const aspect = this.camera.aspect || 1.77;
+        const dist = aspect < 1.2 ? (28 / aspect) * 0.85 : 26.5;
+        this.camera.position.set(0, 6.4, dist);
+        this.camera.lookAt(0, 5.8, -1.5);
+    }
+
+    /**
+     * إنشاء باب عثماني ثلاثي الأبعاد بمصراعين قابلين للفتح ورمز 3D واضح فوقه (دون أي نصوص)
+     */
+    createPalaceDoor(index, x, y, z, marbleMat, goldMat) {
+        const doorContainer = new THREE.Group();
+        doorContainer.position.set(x, y, z);
+
+        // إطار الباب الرخامي المزخرف بقوس إسلامي
+        const frameWidth = 3.2;
+        const frameHeight = 5.4;
+
+        const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(0.42, frameHeight, 0.55), marbleMat);
+        leftPillar.position.set(-frameWidth / 2, frameHeight / 2, 0);
+        leftPillar.castShadow = true;
+        doorContainer.add(leftPillar);
+
+        const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(0.42, frameHeight, 0.55), marbleMat);
+        rightPillar.position.set(frameWidth / 2, frameHeight / 2, 0);
+        rightPillar.castShadow = true;
+        doorContainer.add(rightPillar);
+
+        // تاج القوس الذهبي فوق الباب
+        const archHeader = new THREE.Mesh(new THREE.BoxGeometry(frameWidth + 0.5, 0.75, 0.65), goldMat);
+        archHeader.position.set(0, frameHeight + 0.25, 0);
+        doorContainer.add(archHeader);
+
+        // قوس نصف دائري مزخرف
+        const archCurve = new THREE.Mesh(
+            new THREE.CylinderGeometry(frameWidth / 2 + 0.1, frameWidth / 2 + 0.1, 0.55, 24, 1, false, 0, Math.PI),
+            marbleMat
+        );
+        archCurve.rotation.z = Math.PI / 2;
+        archCurve.rotation.y = Math.PI / 2;
+        archCurve.position.set(0, frameHeight - 0.1, 0);
+        doorContainer.add(archCurve);
+
+        // خلفية مظلمة مضيئة داخل الباب تظهر عند فتحه
+        const innerGlow = new THREE.Mesh(
+            new THREE.PlaneGeometry(frameWidth - 0.35, frameHeight - 0.1),
+            new THREE.MeshBasicMaterial({ color: 0xfef08a })
+        );
+        innerGlow.position.set(0, frameHeight / 2, -0.15);
+        doorContainer.add(innerGlow);
+
+        // خامة مصراعي الباب (بني خشبي فاخر في البداية، ويتحول للأخضر عند الإجابة الصحيحة)
+        const doorLeafMat = new THREE.MeshStandardMaterial({
+            color: 0x78350f,
+            roughness: 0.35,
+            metalness: 0.15
+        });
+
+        const leafW = (frameWidth - 0.45) / 2;
+        const leafH = frameHeight - 0.15;
+
+        // المصراع الأيسر (يدور حول مفصلته اليسرى)
+        const leftPivot = new THREE.Group();
+        leftPivot.position.set(-leafW, leafH / 2, 0.08);
+        const leftLeaf = new THREE.Mesh(new THREE.BoxGeometry(leafW - 0.03, leafH, 0.18), doorLeafMat);
+        leftLeaf.position.set(leafW / 2, 0, 0);
+        leftLeaf.castShadow = true;
+        leftPivot.add(leftLeaf);
+
+        // حلقة طرق ذهبية على المصراع الأيسر
+        const knobL = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 10, 20), goldMat);
+        knobL.position.set(leafW - 0.25, -0.1, 0.12);
+        leftPivot.add(knobL);
+        doorContainer.add(leftPivot);
+
+        // المصراع الأيمن (يدور حول مفصلته اليمنى)
+        const rightPivot = new THREE.Group();
+        rightPivot.position.set(leafW, leafH / 2, 0.08);
+        const rightLeaf = new THREE.Mesh(new THREE.BoxGeometry(leafW - 0.03, leafH, 0.18), doorLeafMat);
+        rightLeaf.position.set(-leafW / 2, 0, 0);
+        rightLeaf.castShadow = true;
+        rightPivot.add(rightLeaf);
+
+        const knobR = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 10, 20), goldMat);
+        knobR.position.set(-(leafW - 0.25), -0.1, 0.12);
+        rightPivot.add(knobR);
+        doorContainer.add(rightPivot);
+
+        // مربع شفاف غير مرئي لتسهيل النقر واللمس على كامل مساحة الباب والرمز
+        const hitBox = new THREE.Mesh(
+            new THREE.BoxGeometry(frameWidth + 0.4, frameHeight + 2.2, 1.0),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitBox.position.set(0, (frameHeight + 1.5) / 2, 0.2);
+        hitBox.userData = { doorIndex: index };
+        doorContainer.add(hitBox);
+
+        // إضافة الرمز ثلاثي الأبعاد المميز لكل باب فوق القوس (دون أي نص أو أرقام)
+        const emblemGroup = this.createDoorEmblem3D(index);
+        emblemGroup.position.set(0, frameHeight + 1.35, 0.25);
+        doorContainer.add(emblemGroup);
+
+        this.palaceGroup.add(doorContainer);
+
+        this.doors.push({
+            index,
+            container: doorContainer,
+            leftPivot,
+            rightPivot,
+            leafMat: doorLeafMat,
+            emblemGroup,
+            hitBox
+        });
+    }
+
+    /**
+     * إنشاء الرمز ثلاثي الأبعاد الكبير والواضح فوق كل باب
+     */
+    createDoorEmblem3D(index) {
+        const group = new THREE.Group();
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.2, metalness: 0.85 });
+        const rubyMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.25, metalness: 0.3 });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.45 });
+        const sailMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+        const waveMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.25 });
+        const steelMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.9 });
+
+        if (index === 0) {
+            // الباب الأول: رمز تاج ملكي ذهبي كبير مرصع بالجواهر
+            const baseRing = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.62, 0.35, 24), goldMat);
+            group.add(baseRing);
+
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 12), goldMat);
+                spike.position.set(Math.cos(angle) * 0.62, 0.4, Math.sin(angle) * 0.62);
+                group.add(spike);
+
+                const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), rubyMat);
+                pearl.position.set(Math.cos(angle) * 0.62, 0.72, Math.sin(angle) * 0.62);
+                group.add(pearl);
+            }
+            const velvetCap = new THREE.Mesh(new THREE.SphereGeometry(0.58, 20, 16), rubyMat);
+            velvetCap.position.y = 0.22;
+            group.add(velvetCap);
+
+        } else if (index === 1) {
+            // الباب الثاني: رمز سفينة عثمانية ثلاثية الأبعاد وسط الأمواج
+            const wave = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.25, 0.6), waveMat);
+            wave.position.y = -0.35;
+            group.add(wave);
+
+            const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.45, 0.42, 16), woodMat);
+            hull.scale.set(1.25, 1, 0.55);
+            hull.position.y = -0.08;
+            group.add(hull);
+
+            const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.15, 10), woodMat);
+            mast.position.y = 0.5;
+            group.add(mast);
+
+            const sail = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.68, 0.08), sailMat);
+            sail.position.set(0, 0.52, 0.08);
+            group.add(sail);
+
+            const flag = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.2, 0.06), rubyMat);
+            flag.position.set(0.18, 1.05, 0.08);
+            group.add(flag);
+
+        } else if (index === 2) {
+            // الباب الثالث: رمز خريطة ثلاثية الأبعاد مزخرفة باللونين الذهبي والأحمر
+            const scroll = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.05, 0.14), goldMat);
+            group.add(scroll);
+
+            // عمودا اللفافة الجانبيان
+            [-0.76, 0.76].forEach((rx) => {
+                const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.25, 16), woodMat);
+                roller.position.set(rx, 0, 0.04);
+                group.add(roller);
+            });
+
+            // رقعة الخريطة باللون الأحمر الملكي مع علامات ذهبية
+            const mapTerritory = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.72, 0.18), rubyMat);
+            group.add(mapTerritory);
+
+            const compassStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), goldMat);
+            compassStar.position.set(0, 0, 0.14);
+            group.add(compassStar);
+
+        } else if (index === 3) {
+            // الباب الرابع: رمز سيف ودرع عثمانيين بتصميم ثلاثي الأبعاد
+            const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.16, 24), goldMat);
+            shield.rotation.x = Math.PI / 2;
+            group.add(shield);
+
+            const shieldCenter = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), rubyMat);
+            shieldCenter.position.z = 0.08;
+            group.add(shieldCenter);
+
+            // سيف مائل خلف الدرع
+            const swordGroup = new THREE.Group();
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.45, 0.06), steelMat);
+            blade.position.y = 0.2;
+            swordGroup.add(blade);
+
+            const guard = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.1, 0.1), goldMat);
+            guard.position.y = -0.45;
+            swordGroup.add(guard);
+
+            const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.3, 12), rubyMat);
+            hilt.position.y = -0.65;
+            swordGroup.add(hilt);
+
+            swordGroup.rotation.z = -Math.PI / 5;
+            swordGroup.position.z = -0.1;
+            group.add(swordGroup);
+
+        } else if (index === 4) {
+            // الباب الخامس: رمز ميزان عدل وكتاب قوانين ذهبي
+            const book = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.24, 0.8), rubyMat);
+            book.position.set(0, -0.42, 0.1);
+            book.rotation.x = 0.35;
+            group.add(book);
+
+            const bookPages = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.18, 0.72), sailMat);
+            bookPages.position.set(0, -0.42, 0.13);
+            bookPages.rotation.x = 0.35;
+            group.add(bookPages);
+
+            // عمود الميزان والذراع وكفتا الميزان الذهبيتان
+            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 1.0, 12), goldMat);
+            pillar.position.set(0, 0.15, 0);
+            group.add(pillar);
+
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.08, 0.08), goldMat);
+            beam.position.set(0, 0.6, 0);
+            group.add(beam);
+
+            [-0.55, 0.55].forEach((px) => {
+                const pan = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.14, 0.1, 16), goldMat);
+                pan.position.set(px, 0.25, 0);
+                group.add(pan);
+            });
+        }
+
+        return group;
+    }
+
+    addCrescentFinial(parent, x, y, z, scale, mat) {
+        const g = new THREE.Group();
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 0.9, 12), mat);
+        g.add(rod);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.07, 12, 24), mat);
+        ring.position.y = 0.55;
+        g.add(ring);
+        g.position.set(x, y, z);
+        g.scale.setScalar(scale);
+        parent.add(g);
+    }
+
+    createStylizedTree(x, z) {
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.22, 0.32, 1.8, 12),
+            new THREE.MeshStandardMaterial({ color: 0x78350f })
+        );
+        trunk.position.y = 0.9;
+        tree.add(trunk);
+
+        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.7 });
+        const cone1 = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.8, 16), foliageMat);
+        cone1.position.y = 2.7;
+        cone1.castShadow = true;
+        tree.add(cone1);
+
+        const cone2 = new THREE.Mesh(new THREE.ConeGeometry(0.85, 2.2, 16), foliageMat);
+        cone2.position.y = 4.0;
+        tree.add(cone2);
+
+        tree.position.set(x, 0, z);
+        this.palaceGroup.add(tree);
+    }
+
+    createClouds() {
+        const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+        const positions = [
+            [-14, 15, -14],
+            [0, 16.5, -16],
+            [14, 14.5, -14]
+        ];
+        positions.forEach(([x, y, z]) => {
+            const cloud = new THREE.Group();
+            [
+                [0, 0, 0, 1.4],
+                [-1.1, -0.2, 0.2, 1.0],
+                [1.1, -0.2, -0.1, 1.05]
+            ].forEach(([cx, cy, cz, r]) => {
+                const puff = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 16), cloudMat);
+                puff.position.set(cx, cy, cz);
+                cloud.add(puff);
+            });
+            cloud.position.set(x, y, z);
+            this.palaceGroup.add(cloud);
+            this.animatedObjects.push({ obj: cloud, type: 'cloud', baseX: x, speed: 0.15 });
+        });
+    }
+
+    /**
+     * ============================================================================
+     * 4. بناء المشاهد الداخلية ثلاثية الأبعاد لكل غرفة من الغرف الخمس
+     * ============================================================================
+     */
+    buildRoomScene(roomIndex) {
+        while (this.roomGroup.children.length > 0) {
+            this.roomGroup.remove(this.roomGroup.children[0]);
+        }
+        this.animatedObjects = this.animatedObjects.filter(item => item.type === 'cloud');
+
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.22, metalness: 0.85 });
+        const rubyMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.35 });
+        const royalBlueMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.4 });
+        const marbleMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.35 });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+
+        if (roomIndex === 0) {
+            // الغرفة 1: قاعة العرش العثمانية الفخمة
+            this.scene.background = new THREE.Color(0x1e1b4b);
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), marbleMat);
+            floor.rotation.x = -Math.PI / 2;
+            this.roomGroup.add(floor);
+
+            const carpet = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.06, 16), rubyMat);
+            carpet.position.set(0, 0.03, 2);
+            this.roomGroup.add(carpet);
+
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(24, 14, 1), royalBlueMat);
+            backWall.position.set(0, 7, -6);
+            this.roomGroup.add(backWall);
+
+            [-6, -3, 3, 6].forEach((cx) => {
+                const col = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 9, 20), marbleMat);
+                col.position.set(cx, 4.5, -4.5);
+                this.roomGroup.add(col);
+            });
+
+            // منصة العرش والعرش الذهبي الكبير
+            const dais = new THREE.Mesh(new THREE.BoxGeometry(6, 0.6, 4.5), goldMat);
+            dais.position.set(0, 0.3, -3.5);
+            this.roomGroup.add(dais);
+
+            const throneGroup = new THREE.Group();
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 2.0), rubyMat);
+            seat.position.y = 0.45;
+            throneGroup.add(seat);
+
+            const backrest = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.4, 0.4), goldMat);
+            backrest.position.set(0, 2.0, -0.8);
+            throneGroup.add(backrest);
+
+            const cushion = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.6, 0.45), rubyMat);
+            cushion.position.set(0, 2.0, -0.75);
+            throneGroup.add(cushion);
+
+            [-1.35, 1.35].forEach((ax) => {
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.3, 2.0), goldMat);
+                arm.position.set(ax, 0.7, 0);
+                throneGroup.add(arm);
+            });
+
+            // تاج ملكي كبير متوهج يدور بلطف فوق العرش
+            const floatingCrown = this.createDoorEmblem3D(0);
+            floatingCrown.scale.setScalar(1.35);
+            floatingCrown.position.set(0, 4.7, -0.4);
+            throneGroup.add(floatingCrown);
+            this.animatedObjects.push({ obj: floatingCrown, type: 'spin', speed: 0.9 });
+
+            throneGroup.position.set(0, 0.6, -3.5);
+            this.roomGroup.add(throneGroup);
+
+            this.camera.position.set(0, 4.4, 8.8);
+            this.camera.lookAt(0, 2.5, -3.2);
+
+        } else if (roomIndex === 1) {
+            // الغرفة 2: السفينة العثمانية في البحر المتوسط
+            this.scene.background = new THREE.Color(0x38bdf8);
+
+            const seaMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.1 });
+            const sea = new THREE.Mesh(new THREE.PlaneGeometry(50, 40), seaMat);
+            sea.rotation.x = -Math.PI / 2;
+            this.roomGroup.add(sea);
+
+            // أمواج متحركة
+            for (let i = -3; i <= 3; i++) {
+                const wave = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.28, 0.28, 22, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x7dd3fc })
+                );
+                wave.rotation.z = Math.PI / 2;
+                wave.position.set(0, 0.05, i * 2.4);
+                this.roomGroup.add(wave);
+                this.animatedObjects.push({ obj: wave, type: 'wave', phase: i * 0.8 });
+            }
+
+            // السفينة العثمانية الكبيرة
+            const shipGroup = new THREE.Group();
+            const hull = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 2.0, 1.8, 24), woodMat);
+            hull.scale.set(1.8, 1, 0.65);
+            hull.position.y = 0.8;
+            shipGroup.add(hull);
+
+            const trim = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.25, 3.8), goldMat);
+            trim.position.y = 1.65;
+            shipGroup.add(trim);
+
+            [-2.2, 0.5, 2.8].forEach((mx, idx) => {
+                const h = idx === 1 ? 5.6 : 4.4;
+                const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, h, 12), woodMat);
+                mast.position.set(mx, 1.6 + h / 2, 0);
+                shipGroup.add(mast);
+
+                const sail = new THREE.Mesh(new THREE.BoxGeometry(0.15, h * 0.62, 2.8), whiteMat);
+                sail.position.set(mx + 0.15, 1.8 + h * 0.52, 0);
+                shipGroup.add(sail);
+
+                const banner = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 0.08), rubyMat);
+                banner.position.set(mx + 0.45, 1.5 + h, 0);
+                shipGroup.add(banner);
+            });
+
+            shipGroup.position.set(0, 0.2, -1.5);
+            this.roomGroup.add(shipGroup);
+            this.animatedObjects.push({ obj: shipGroup, type: 'bob', baseY: 0.2 });
+
+            this.camera.position.set(0, 4.8, 10.5);
+            this.camera.lookAt(0, 2.4, -1.5);
+
+        } else if (roomIndex === 2) {
+            // الغرفة 3: الخريطة التاريخية المجسمة لاتساع الدولة العثمانية
+            this.scene.background = new THREE.Color(0x1e293b);
+
+            const table = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.0, 0.8, 32), woodMat);
+            table.position.set(0, 0.4, -1);
+            this.roomGroup.add(table);
+
+            const mapBase = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 5.8, 0.25, 32), marbleMat);
+            mapBase.position.set(0, 0.9, -1);
+            this.roomGroup.add(mapBase);
+
+            // رقعة اتساع الدولة العثمانية عبر القارات الثلاث باللونين الأحمر والذهبي
+            const empireGroup = new THREE.Group();
+            const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.7, 0.4, 24), rubyMat);
+            empireGroup.add(centerHub);
+
+            const wingEurope = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.38, 1.8), rubyMat);
+            wingEurope.position.set(-1.8, 0, -1.3);
+            wingEurope.rotation.y = 0.35;
+            empireGroup.add(wingEurope);
+
+            const wingAfrica = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.38, 1.6), rubyMat);
+            wingAfrica.position.set(-1.4, 0, 1.6);
+            wingAfrica.rotation.y = -0.2;
+            empireGroup.add(wingAfrica);
+
+            const wingAsia = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.38, 2.2), rubyMat);
+            wingAsia.position.set(2.1, 0, 0.4);
+            empireGroup.add(wingAsia);
+
+            [
+                [0, 0.5, 0],
+                [-2.2, 0.5, -1.5],
+                [-1.8, 0.5, 1.7],
+                [2.3, 0.5, 0.5]
+            ].forEach(([px, py, pz]) => {
+                const pin = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.8, 16), goldMat);
+                pin.rotation.x = Math.PI;
+                pin.position.set(px, py + 0.3, pz);
+                empireGroup.add(pin);
+            });
+
+            empireGroup.position.set(0, 1.15, -1);
+            this.roomGroup.add(empireGroup);
+            this.animatedObjects.push({ obj: empireGroup, type: 'pulse' });
+
+            this.camera.position.set(0, 6.8, 8.2);
+            this.camera.lookAt(0, 1.1, -1.2);
+
+        } else if (roomIndex === 3) {
+            // الغرفة 4: قلعة وأسوار مدينة فيينا والرايات العثمانية
+            this.scene.background = new THREE.Color(0x60a5fa);
+
+            const meadow = new THREE.Mesh(
+                new THREE.PlaneGeometry(45, 45),
+                new THREE.MeshStandardMaterial({ color: 0x4ade80 })
+            );
+            meadow.rotation.x = -Math.PI / 2;
+            this.roomGroup.add(meadow);
+
+            const stoneMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.6 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.5 });
+
+            // أسوار وأبراج قلعة فيينا
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(14, 4.2, 1.4), stoneMat);
+            wall.position.set(0, 2.1, -4.5);
+            this.roomGroup.add(wall);
+
+            [-6.5, -2.2, 2.2, 6.5].forEach((tx) => {
+                const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.2, 5.8, 20), stoneMat);
+                tower.position.set(tx, 2.9, -4.5);
+                this.roomGroup.add(tower);
+
+                const roof = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.0, 20), roofMat);
+                roof.position.set(tx, 6.8, -4.5);
+                this.roomGroup.add(roof);
+            });
+
+            // الرايات العثمانية وجنود كرتونيون رمزيون أمام الأسوار
+            [-3.5, 0, 3.5].forEach((fx, idx) => {
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 4.2, 10), goldMat);
+                pole.position.set(fx, 2.1, -0.8);
+                this.roomGroup.add(pole);
+
+                const flag = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.95, 0.08), rubyMat);
+                flag.position.set(fx + 0.75, 3.6, -0.8);
+                this.roomGroup.add(flag);
+                this.animatedObjects.push({ obj: flag, type: 'wave', phase: idx });
+
+                const soldier = new THREE.Group();
+                const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 1.5, 16), royalBlueMat);
+                robe.position.y = 0.75;
+                soldier.add(robe);
+
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), marbleMat);
+                head.position.y = 1.75;
+                soldier.add(head);
+
+                const turban = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), whiteMat);
+                turban.position.y = 2.0;
+                soldier.add(turban);
+
+                soldier.position.set(fx - 0.8, 0, -0.6);
+                this.roomGroup.add(soldier);
+            });
+
+            this.camera.position.set(0, 4.8, 9.8);
+            this.camera.lookAt(0, 2.2, -3.5);
+
+        } else if (roomIndex === 4) {
+            // الغرفة 5: قاعة القوانين والتنظيم الإداري (مكتب ومخطوطات وميزان العدل)
+            this.scene.background = new THREE.Color(0x1e1b4b);
+
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), marbleMat);
+            floor.rotation.x = -Math.PI / 2;
+            this.roomGroup.add(floor);
+
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(24, 14, 1), royalBlueMat);
+            backWall.position.set(0, 7, -6);
+            this.roomGroup.add(backWall);
+
+            // مكتب خشبي فخم
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.8, 3.2), woodMat);
+            desk.position.set(0, 0.9, -2.2);
+            this.roomGroup.add(desk);
+
+            const deskTrim = new THREE.Mesh(new THREE.BoxGeometry(7.7, 0.2, 3.4), goldMat);
+            deskTrim.position.set(0, 1.85, -2.2);
+            this.roomGroup.add(deskTrim);
+
+            // كتاب القوانين الذهبي المفتوح في منتصف المكتب
+            const lawBook = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.35, 1.5), rubyMat);
+            lawBook.position.set(0, 2.1, -1.8);
+            lawBook.rotation.x = 0.2;
+            this.roomGroup.add(lawBook);
+
+            const pages = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.25, 1.35), whiteMat);
+            pages.position.set(0, 2.18, -1.8);
+            pages.rotation.x = 0.2;
+            this.roomGroup.add(pages);
+
+            // مخطوطات قديمة وريشة كتابة
+            [-2.4, -1.9].forEach((sx, i) => {
+                const scroll = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.4, 16), marbleMat);
+                scroll.rotation.z = Math.PI / 2;
+                scroll.rotation.y = i * 0.3;
+                scroll.position.set(sx, 2.12, -2.1);
+                this.roomGroup.add(scroll);
+            });
+
+            // ميزان العدل الذهبي الكبير فوق المكتب
+            const scaleEmblem = this.createDoorEmblem3D(4);
+            scaleEmblem.scale.setScalar(1.55);
+            scaleEmblem.position.set(2.2, 3.1, -2.2);
+            this.roomGroup.add(scaleEmblem);
+            this.animatedObjects.push({ obj: scaleEmblem, type: 'bob', baseY: 3.1 });
+
+            this.camera.position.set(0, 4.4, 7.6);
+            this.camera.lookAt(0, 2.2, -2.2);
+        }
+    }
+
+    /**
+     * بناء المشهد الاحتفالي النهائي للقصر العثماني مع التاج الكبير والإضاءة الذهبية
+     */
+    buildVictoryScene() {
+        this.palaceGroup.visible = true;
+        this.roomGroup.visible = false;
+        this.victoryGroup.visible = true;
+        this.scene.background = new THREE.Color(0x1e1b4b);
+
+        while (this.victoryGroup.children.length > 0) {
+            this.victoryGroup.remove(this.victoryGroup.children[0]);
+        }
+
+        // تاج ذهبي ضخم احتفالي يتوسط المشهد أمام القصر المضاء
+        const bigCrown = this.createDoorEmblem3D(0);
+        bigCrown.scale.setScalar(2.6);
+        bigCrown.position.set(0, 6.2, 4.5);
+        this.victoryGroup.add(bigCrown);
+        this.animatedObjects.push({ obj: bigCrown, type: 'spin', speed: 1.2 });
+
+        // نجوم ذهبية احتفالية متلألئة
+        const goldMat = new THREE.MeshStandardMaterial({
+            color: 0xfde047,
+            emissive: 0xf59e0b,
+            emissiveIntensity: 0.6
+        });
+
+        for (let i = 0; i < 24; i++) {
+            const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), goldMat);
+            const angle = (i / 24) * Math.PI * 2;
+            const radius = 5.5 + (i % 3) * 2.2;
+            star.position.set(Math.cos(angle) * radius, 4.5 + (i % 4) * 1.4, 2.5 + Math.sin(angle) * 2);
+            this.victoryGroup.add(star);
+            this.animatedObjects.push({ obj: star, type: 'bob', baseY: star.position.y });
+        }
+
+        const aspect = this.camera.aspect || 1.77;
+        const dist = aspect < 1.2 ? (28 / aspect) * 0.72 : 22;
+        this.camera.position.set(0, 5.4, dist);
+        this.camera.lookAt(0, 4.8, 0);
+    }
+
+    /**
+     * ============================================================================
+     * 5. إدارة التفاعل، فتح الأبواب، الأسئلة، والانتقال بين الشاشات
+     * ============================================================================
+     */
+    bindEvents() {
+        const canvas = this.renderer.domElement;
+
+        // زر بدء اللعبة من شاشة البداية
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            sfx.init();
+            document.getElementById('ui-start-screen').classList.add('hidden');
+            document.getElementById('ui-palace').classList.remove('hidden');
+            this.state = 'PALACE';
+        });
+
+        // تتبع حركة المؤشر لإبراز الأبواب عند المرور عليها
+        canvas.addEventListener('pointermove', (e) => {
+            if (this.state !== 'PALACE') return;
+            this.updatePointer(e);
+            this.raycaster.setFromCamera(this.pointer, this.camera);
+            const hitBoxes = this.doors.map(d => d.hitBox);
+            const intersects = this.raycaster.intersectObjects(hitBoxes);
+            if (intersects.length > 0) {
+                const idx = intersects[0].object.userData.doorIndex;
+                this.hoveredDoor = this.doors[idx];
+                canvas.style.cursor = 'pointer';
+            } else {
+                this.hoveredDoor = null;
+                canvas.style.cursor = 'default';
+            }
+        });
+
+        // الضغط أو اللمس على أحد الأبواب الخمسة
+        canvas.addEventListener('pointerdown', (e) => {
+            if (this.state !== 'PALACE' || this.isLocked) return;
+            this.updatePointer(e);
+            this.raycaster.setFromCamera(this.pointer, this.camera);
+            const hitBoxes = this.doors.map(d => d.hitBox);
+            const intersects = this.raycaster.intersectObjects(hitBoxes);
+            if (intersects.length > 0) {
+                const idx = intersects[0].object.userData.doorIndex;
+                this.openDoorAndEnterRoom(idx);
+            }
+        });
+
+        // زر بدء الأسئلة الختامية
+        document.getElementById('btn-start-quiz').addEventListener('click', () => {
+            this.startFinalQuiz();
+        });
+
+        // زر إعادة اللعبة
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            this.resetGame();
+        });
+
+        // تجاوب الكاميرا عند تغيير حجم الشاشة
+        window.addEventListener('resize', () => this.onResize());
+    }
+
+    updatePointer(event) {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    onResize() {
+        const frame = document.getElementById('game-frame');
+        const width = frame.clientWidth;
+        const height = frame.clientHeight;
+        if (width === 0 || height === 0) return;
+
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height, false);
+
+        if (this.state === 'PALACE' || this.state === 'START') {
+            const dist = this.camera.aspect < 1.2 ? (28 / this.camera.aspect) * 0.85 : 26.5;
+            this.camera.position.set(0, 6.4, dist);
+            this.camera.lookAt(0, 5.8, -1.5);
+        }
+    }
+
+    /**
+     * فتح مصراعي الباب بحركة ثلاثية الأبعاد ثم الدخول إلى الغرفة
+     */
+    openDoorAndEnterRoom(doorIndex) {
+        this.state = 'OPENING_DOOR';
+        this.isLocked = true;
+        this.currentRoomId = doorIndex;
+        sfx.playDoorOpen();
+
+        const door = this.doors[doorIndex];
+        this.animatingDoor = {
+            door,
+            progress: 0,
+            startCamPos: this.camera.position.clone(),
+            targetCamPos: new THREE.Vector3(door.container.position.x, 3.6, 3.2),
+            targetLook: new THREE.Vector3(door.container.position.x, 3.4, -1.2)
+        };
+    }
+
+    /**
+     * الدخول الفعلي إلى الغرفة وعرض السؤال مباشرة
+     */
+    enterRoom(roomIndex) {
+        this.state = 'ROOM';
+        this.isLocked = false;
+
+        this.palaceGroup.visible = false;
+        this.roomGroup.visible = true;
+        this.buildRoomScene(roomIndex);
+
+        // تحديث واجهة المستخدم
+        document.getElementById('ui-palace').classList.add('hidden');
+        document.getElementById('ui-room').classList.remove('hidden');
+
+        const roomData = ROOMS_DATA[roomIndex];
+        document.getElementById('room-question-text').textContent = roomData.question;
+
+        const feedbackEl = document.getElementById('room-feedback');
+        feedbackEl.classList.add('hidden');
+
+        // بناء أزرار الاختيارات الثلاثة
+        const choicesContainer = document.getElementById('room-choices');
+        choicesContainer.innerHTML = '';
+
+        roomData.choices.forEach((choice) => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn px-4 py-2.5 sm:px-5 sm:py-3 text-sm sm:text-lg font-extrabold w-full';
+            btn.textContent = choice.text;
+            btn.addEventListener('click', () => this.handleRoomAnswer(btn, choice.correct));
+            choicesContainer.appendChild(btn);
+        });
+    }
+
+    /**
+     * التحقق من إجابة الطالبة داخل الغرفة
+     */
+    handleRoomAnswer(buttonEl, isCorrect) {
+        if (this.isLocked) return;
+        const feedbackEl = document.getElementById('room-feedback');
+        feedbackEl.classList.remove('hidden');
+
+        if (isCorrect) {
+            this.isLocked = true;
+            buttonEl.classList.add('correct');
+            sfx.playCorrect();
+
+            feedbackEl.className = 'text-center py-2 px-4 rounded-xl font-black text-base sm:text-xl bg-emerald-500/25 border-2 border-emerald-400 text-emerald-300';
+            feedbackEl.textContent = '✨ أحسنتِ! إجابة صحيحة ✨';
+
+            // احتساب الغرفة مكتملة وتحويل بابها إلى اللون الأخضر
+            this.completedRooms[this.currentRoomId] = true;
+            this.updateProgressUI();
+
+            // العودة التلقائية إلى شاشة القصر بعد 1.8 ثانية
+            setTimeout(() => {
+                this.returnToPalace();
+            }, 1800);
+        } else {
+            buttonEl.classList.remove('wrong');
+            void buttonEl.offsetWidth;
+            buttonEl.classList.add('wrong');
+            sfx.playWrong();
+
+            feedbackEl.className = 'text-center py-2 px-4 rounded-xl font-black text-base sm:text-xl bg-rose-500/25 border-2 border-rose-400 text-rose-200';
+            feedbackEl.textContent = '💡 حاولي مرة أخرى';
+        }
+    }
+
+    /**
+     * العودة التلقائية إلى شاشة القصر وتلوين الباب المكتمل بالأخضر
+     */
+    returnToPalace() {
+        this.roomGroup.visible = false;
+        this.palaceGroup.visible = true;
+        this.scene.background = new THREE.Color(0x7ec8e3);
+
+        // إغلاق مصراعي الباب وتلوين الأبواب المكتملة بالأخضر الزمردي
+        this.doors.forEach((door, idx) => {
+            door.leftPivot.rotation.y = 0;
+            door.rightPivot.rotation.y = 0;
+            if (this.completedRooms[idx]) {
+                door.leafMat.color.setHex(0x16a34a);
+                door.leafMat.emissive.setHex(0x064e3b);
+            }
+        });
+
+        const aspect = this.camera.aspect || 1.77;
+        const dist = aspect < 1.2 ? (28 / aspect) * 0.85 : 26.5;
+        this.camera.position.set(0, 6.4, dist);
+        this.camera.lookAt(0, 5.8, -1.5);
+
+        document.getElementById('ui-room').classList.add('hidden');
+        this.isLocked = false;
+
+        // التحقق هل تم اجتياز الأبواب الخمسة جميعاً
+        const allCompleted = this.completedRooms.every(Boolean);
+        if (allCompleted) {
+            this.showVictoryScreen();
+        } else {
+            this.state = 'PALACE';
+            document.getElementById('ui-palace').classList.remove('hidden');
+            const remaining = this.completedRooms.filter(v => !v).length;
+            document.getElementById('palace-hint').textContent =
+                `✨ رائع! تبقّى ${remaining} ${remaining === 1 ? 'باب واحد' : 'أبواب'} لاستكشافه`;
+        }
+    }
+
+    updateProgressUI() {
+        const count = this.completedRooms.filter(Boolean).length;
+        document.getElementById('progress-count').textContent = count;
+        const gems = document.querySelectorAll('.progress-gem');
+        gems.forEach((gem, idx) => {
+            if (this.completedRooms[idx]) {
+                gem.classList.add('completed');
+                gem.textContent = '✓';
+            } else {
+                gem.classList.remove('completed');
+                gem.textContent = '';
+            }
+        });
+    }
+
+    /**
+     * ============================================================================
+     * 6. إدارة شاشة النهاية الاحتفالية
+     * ============================================================================
+     */
+    showVictoryScreen() {
+        this.state = 'VICTORY';
+        sfx.playFanfare();
+        document.getElementById('ui-palace').classList.add('hidden');
+        document.getElementById('ui-victory').classList.remove('hidden');
+        this.buildVictoryScene();
+    }
+
+    resetGame() {
+        this.completedRooms = [false, false, false, false, false];
+        this.isLocked = false;
+        this.victoryGroup.visible = false;
+        this.roomGroup.visible = false;
+        this.palaceGroup.visible = true;
+        this.scene.background = new THREE.Color(0x7ec8e3);
+
+        this.doors.forEach((door) => {
+            door.leftPivot.rotation.y = 0;
+            door.rightPivot.rotation.y = 0;
+            door.leafMat.color.setHex(0x78350f);
+            door.leafMat.emissive.setHex(0x000000);
+        });
+
+        this.updateProgressUI();
+        document.getElementById('palace-hint').textContent = '👆 اضغطي على أي باب من أبواب القصر الخمسة لاستكشافه';
+
+        document.getElementById('ui-victory').classList.add('hidden');
+        document.getElementById('ui-palace').classList.remove('hidden');
+
+        const aspect = this.camera.aspect || 1.77;
+        const dist = aspect < 1.2 ? (28 / aspect) * 0.85 : 26.5;
+        this.camera.position.set(0, 6.4, dist);
+        this.camera.lookAt(0, 5.8, -1.5);
+        this.state = 'PALACE';
+    }
+
+    /**
+     * ============================================================================
+     * 7. حلقة التحريك المستمرة (Animation Loop)
+     * ============================================================================
+     */
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        const elapsed = this.clock.getElapsedTime();
+
+        // تحريك الرموز فوق الأبواب برفق لجذب الانتباه
+        if (this.state === 'PALACE' || this.state === 'START') {
+            this.doors.forEach((door, i) => {
+                const isHovered = this.hoveredDoor && this.hoveredDoor.index === i;
+                door.emblemGroup.rotation.y = Math.sin(elapsed * 1.4 + i) * 0.35;
+                door.emblemGroup.position.y = 6.75 + Math.sin(elapsed * 2.2 + i) * 0.08;
+                const targetScale = isHovered ? 1.15 : 1.0;
+                door.emblemGroup.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.15);
+            });
+        }
+
+        // حركة فتح مصراعي الباب ثلاثية الأبعاد واقتراب الكاميرا
+        if (this.state === 'OPENING_DOOR' && this.animatingDoor) {
+            this.animatingDoor.progress += 0.025;
+            const t = Math.min(this.animatingDoor.progress, 1);
+            const ease = 1 - Math.pow(1 - t, 3);
+
+            this.animatingDoor.door.leftPivot.rotation.y = -ease * (Math.PI * 0.58);
+            this.animatingDoor.door.rightPivot.rotation.y = ease * (Math.PI * 0.58);
+
+            this.camera.position.lerpVectors(
+                this.animatingDoor.startCamPos,
+                this.animatingDoor.targetCamPos,
+                ease
+            );
+            this.camera.lookAt(this.animatingDoor.targetLook);
+
+            if (t >= 1) {
+                const idx = this.animatingDoor.door.index;
+                this.animatingDoor = null;
+                this.enterRoom(idx);
+            }
+        }
+
+        // تحريك العناصر داخل المشاهد
+        this.animatedObjects.forEach((item) => {
+            if (item.type === 'cloud') {
+                item.obj.position.x = item.baseX + Math.sin(elapsed * item.speed) * 2.5;
+            } else if (item.type === 'spin') {
+                item.obj.rotation.y = elapsed * item.speed;
+            } else if (item.type === 'bob') {
+                item.obj.position.y = item.baseY + Math.sin(elapsed * 2.4) * 0.16;
+                item.obj.rotation.z = Math.sin(elapsed * 1.6) * 0.04;
+            } else if (item.type === 'wave') {
+                item.obj.position.y = 0.05 + Math.sin(elapsed * 3 + item.phase) * 0.08;
+            } else if (item.type === 'pulse') {
+                const s = 1 + Math.sin(elapsed * 2.5) * 0.04;
+                item.obj.scale.set(s, 1, s);
+            }
+        });
+
+        this.renderer.render(this.scene, this.camera);
+    }
+}
+
+// تشغيل اللعبة بعد اكتمال تحميل الصفحة
+window.onload = function () {
+    window.gameInstance = new SuleimanPalaceGame();
+};
+</script>
+</body>
+</html>
